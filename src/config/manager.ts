@@ -66,19 +66,19 @@ const DEFAULT_CONFIG: ProxyConfig = {
     refreshIntervalMs: 300000,
     initialDelayMs: 10000
   },
-    endpoints: {
-      sandbox: [
-        'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
-        'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
-        'https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:streamGenerateContent?alt=sse',
-        'https://autopush-cloudcode-pa.sandbox.googleapis.com/v1internal:streamGenerateContent?alt=sse'
-      ],
-      cli: [
-        'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
-        'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
-        'https://autopush-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse'
-      ]
-    },
+  endpoints: {
+    sandbox: [
+      'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+      'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+      'https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+      // 'https://autopush-cloudcode-pa.sandbox.googleapis.com/v1internal:streamGenerateContent?alt=sse'
+    ],
+    cli: [
+      'https://cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+      'https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse',
+      // 'https://autopush-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse'
+    ]
+  },
   logging: {
     maxBufferSize: 200,
     enableConsoleCapture: true
@@ -105,14 +105,14 @@ export async function loadProxyConfig(): Promise<ProxyConfig> {
   try {
     const file = Bun.file(CONFIG_PATH);
     const exists = await file.exists();
-    
+
     if (!exists) {
       console.log('[Config] config.json not found, creating with defaults...');
       await saveProxyConfig(DEFAULT_CONFIG);
       config = DEFAULT_CONFIG;
       return config;
     }
-    
+
     const text = await file.text();
     const loadedConfig = JSON.parse(text);
     config = deepMerge(DEFAULT_CONFIG, loadedConfig) as ProxyConfig;
@@ -152,7 +152,7 @@ export async function updateProxyConfig(updates: Partial<ProxyConfig>): Promise<
 
 function deepMerge(target: any, source: any): any {
   const result = { ...target };
-  
+
   for (const key in source) {
     if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       result[key] = deepMerge(result[key] || {}, source[key]);
@@ -160,6 +160,6 @@ function deepMerge(target: any, source: any): any {
       result[key] = source[key];
     }
   }
-  
+
   return result;
 }
