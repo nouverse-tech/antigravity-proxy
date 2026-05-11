@@ -15,7 +15,7 @@ export const OAUTH_CONFIG = {
   redirectUri: "http://localhost:3000/oauth-callback"
 };
 
-const ANTIGRAVITY_VERSION = "1.15.8";
+const ANTIGRAVITY_VERSION = "1.23.2";
 
 const PLATFORMS = ["darwin/x64", "darwin/arm64"] as const;
 
@@ -118,7 +118,7 @@ export function getImpersonationHeaders(accessToken: string, fingerprint?: Devic
   const headers: Record<string, string> = {
     "Authorization": `Bearer ${accessToken}`,
     "Content-Type": "application/json",
-    "User-Agent": `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/138.0.7204.235 Electron/37.3.1 Safari/537.36`,
+    "User-Agent": `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/140.0.7560.128 Electron/38.2.0 Safari/537.36`,
     "X-Goog-Api-Client": fp.apiClient,
     "X-Goog-QuotaUser": fp.quotaUser,
     "X-Client-Device-Id": fp.deviceId,
