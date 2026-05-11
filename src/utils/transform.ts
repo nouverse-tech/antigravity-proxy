@@ -258,7 +258,18 @@ export function transformToGoogleBody(
         for (const tc of msg.tool_calls) {
           if (tc.function) {
             let callId = tc.id || "";
-            let sig = getSignatureByCallId(callId) || messageSignature;
+            let cleanId = callId;
+            let sigFromId = "";
+            
+            if (callId.startsWith("sig:")) {
+              const idParts = callId.split(":");
+              if (idParts.length >= 3) {
+                sigFromId = idParts[1];
+                cleanId = idParts.slice(2).join(":");
+              }
+            }
+            
+            let sig = getSignatureByCallId(cleanId) || sigFromId || messageSignature;
 
             const funcCall: any = {
               name: tc.function.name,
@@ -266,7 +277,7 @@ export function transformToGoogleBody(
             };
             
             if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
-                funcCall.id = callId;
+                funcCall.id = cleanId;
             }
 
             const funcPart: any = {
