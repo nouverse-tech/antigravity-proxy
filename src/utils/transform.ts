@@ -186,8 +186,27 @@ export function transformToGoogleBody(
   const systemMessage = openaiBody.messages.find((m: any) => m.role === "system");
   const otherMessages = openaiBody.messages.filter((m: any) => m.role !== "system");
 
-  const contents = otherMessages.map((msg: any) => {
+  // Determine the "current turn" boundary per Google's spec:
+  // Google validates signatures only in the current turn.
+  // The current turn starts from the LAST user message that contains standard text content.
+  // Everything before that is a "previous turn" and signatures are NOT validated there.
+  let currentTurnStartIndex = 0;
+  for (let i = otherMessages.length - 1; i >= 0; i--) {
+    const msg = otherMessages[i];
+    if (msg.role === "user" && msg.content && msg.role !== "tool") {
+      const hasTextContent = typeof msg.content === 'string' 
+        ? true 
+        : (Array.isArray(msg.content) && msg.content.some((p: any) => p.type === "text"));
+      if (hasTextContent) {
+        currentTurnStartIndex = i;
+        break;
+      }
+    }
+  }
+
+  const contents = otherMessages.map((msg: any, msgIndex: number) => {
     const parts = [];
+    const isInCurrentTurn = msgIndex >= currentTurnStartIndex;
     
     if (msg.role === "tool") {
       let responseObj;
@@ -214,20 +233,20 @@ export function transformToGoogleBody(
         functionResponse: funcResp
       });
     } else {
-      let messageSignature = "";
-
-      if ((msg.role === "assistant" || msg.role === "model") && sessionId) {
+      // For previous turns: strip all thinking content and signatures entirely.
+      // For current turn: include thinking content with signatures from cache.
+      if (isInCurrentTurn && (msg.role === "assistant" || msg.role === "model") && sessionId) {
         const thoughtText = msg.thought || msg.reasoning_content;
         if (thoughtText) {
           const sig = getSignature(sessionId, thoughtText);
           if (sig) {
-            messageSignature = sig;
             parts.push({ thought: true, text: thoughtText, thoughtSignature: sig });
           } else if (proxyConfig.features.keepThinking) {
             parts.push({ thought: true, text: thoughtText });
           }
         }
       }
+      // For previous turns: just skip thinking entirely (no thought parts, no signatures needed)
 
       if (msg.content) {
           if (Array.isArray(msg.content)) {
@@ -255,21 +274,18 @@ export function transformToGoogleBody(
       }
 
       if (msg.tool_calls) {
+        let isFirstFuncCallInStep = true;
         for (const tc of msg.tool_calls) {
           if (tc.function) {
             let callId = tc.id || "";
+            // Clean any legacy sig: prefix from the ID
             let cleanId = callId;
-            let sigFromId = "";
-            
             if (callId.startsWith("sig:")) {
               const idParts = callId.split(":");
               if (idParts.length >= 3) {
-                sigFromId = idParts[1];
                 cleanId = idParts.slice(2).join(":");
               }
             }
-            
-            let sig = getSignatureByCallId(cleanId) || sigFromId || messageSignature;
 
             const funcCall: any = {
               name: tc.function.name,
@@ -284,8 +300,16 @@ export function transformToGoogleBody(
               functionCall: funcCall
             };
             
-            if (sig) {
-              funcPart.thoughtSignature = sig;
+            // Only attach signatures for function calls in the CURRENT turn.
+            // Per Google docs: only the first functionCall part in each step needs a signature.
+            // For previous turns: NEVER attach signatures (Google doesn't validate them,
+            // and attaching stale/invalid ones causes "Thought signature is not valid" errors).
+            if (isInCurrentTurn && isFirstFuncCallInStep) {
+              const sig = getSignatureByCallId(cleanId);
+              if (sig) {
+                funcPart.thoughtSignature = sig;
+              }
+              isFirstFuncCallInStep = false;
             }
 
             parts.push(funcPart);
