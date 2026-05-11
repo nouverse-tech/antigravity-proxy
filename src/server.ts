@@ -145,6 +145,7 @@ Bun.serve({
 
         let lastStatus = 0;
         let lastGoogleUrl = "";
+        let originAccountEmail = "";
 
         while (attempts < MAX_ATTEMPTS) {
             attempts++;
@@ -213,6 +214,22 @@ Bun.serve({
           ensureFingerprint(account);
           
           const googleBody = transformToGoogleBody(openaiBody, effectiveProjectId, useCliPool, "", sessionId, aggressive); 
+
+          // If we retry with a different account, strip all thoughtSignatures
+          // because they are cryptographically tied to the original account/project.
+          if (attempts === 1) {
+            originAccountEmail = account.email;
+          } else if (originAccountEmail && originAccountEmail !== account.email) {
+            const reqContents = googleBody.request?.contents || [];
+            for (const c of reqContents) {
+              for (const p of (c.parts || [])) {
+                if (p.thoughtSignature) {
+                  delete p.thoughtSignature;
+                }
+              }
+            }
+            console.log(`[Signature] Stripped thoughtSignatures for retry with different account (${account.email})`);
+          }
 
           const isClaudeModelTarget = googleBody.model.toLowerCase().includes("claude");
           const headers = (useCliPool && !isClaudeModelTarget)
