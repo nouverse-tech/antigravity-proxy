@@ -186,6 +186,26 @@ export function transformToGoogleBody(
   const systemMessage = openaiBody.messages.find((m: any) => m.role === "system");
   const otherMessages = openaiBody.messages.filter((m: any) => m.role !== "system");
 
+  // Build a lookup map: tool_call_id → function_name
+  // OpenClaw often sends tool results without a name field, so we need to resolve it from the history
+  const toolCallNameMap = new Map<string, string>();
+  for (const msg of otherMessages) {
+    if (msg.tool_calls) {
+      for (const tc of msg.tool_calls) {
+        if (tc.id && tc.function?.name) {
+          toolCallNameMap.set(tc.id, tc.function.name);
+          // Also map cleaned IDs (without sig: prefix)
+          if (tc.id.startsWith("sig:")) {
+            const idParts = tc.id.split(":");
+            if (idParts.length >= 3) {
+              toolCallNameMap.set(idParts.slice(2).join(":"), tc.function.name);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Determine the "current turn" boundary per Google's spec:
   // Google validates signatures only in the current turn.
   // The current turn starts from the LAST user message that contains standard text content.
@@ -204,7 +224,7 @@ export function transformToGoogleBody(
     }
   }
 
-  const contents = otherMessages.map((msg: any, msgIndex: number) => {
+  const rawContents = otherMessages.map((msg: any, msgIndex: number) => {
     const parts = [];
     const isInCurrentTurn = msgIndex >= currentTurnStartIndex;
     
@@ -220,8 +240,11 @@ export function transformToGoogleBody(
         responseObj = { result: responseObj };
       }
 
+      // Resolve function name: try msg.name first, then look up from tool_call_id
+      const funcName = msg.name || toolCallNameMap.get(msg.tool_call_id) || "function_result";
+
       const funcResp: any = {
-        name: msg.name || "function_result",
+        name: funcName,
         response: responseObj
       };
       
@@ -327,6 +350,17 @@ export function transformToGoogleBody(
       parts
     };
   });
+
+  // Merge consecutive same-role messages (Google API requires alternating user/model roles)
+  const contents: any[] = [];
+  for (const entry of rawContents) {
+    if (contents.length > 0 && contents[contents.length - 1].role === entry.role) {
+      // Merge parts into the previous message
+      contents[contents.length - 1].parts.push(...entry.parts);
+    } else {
+      contents.push(entry);
+    }
+  }
 
   const isThinkingModel = rawModel.includes("-thinking");
   const hasExplicitBudget = openaiBody.thinking_budget !== undefined || 
