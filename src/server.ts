@@ -249,6 +249,24 @@ Bun.serve({
                 
                 console.error(`[Error] Google API (${account.email}) returned ${status} (${parsedError.reason}):`, errText);
 
+                // Debug: dump the exact request body on 400 errors so we can diagnose signature issues
+                if (status === 400) {
+                  const reqContents = googleBody.request?.contents || [];
+                  console.error(`[Debug-400] Model: ${googleBody.model} | Contents length: ${reqContents.length}`);
+                  for (let ci = 0; ci < reqContents.length; ci++) {
+                    const c = reqContents[ci];
+                    const partSummaries = (c.parts || []).map((p: any, pi: number) => {
+                      if (p.functionCall) return `[${pi}] functionCall(${p.functionCall.name}, id=${p.functionCall.id || 'none'}, hasSig=${!!p.thoughtSignature})`;
+                      if (p.functionResponse) return `[${pi}] functionResponse(${p.functionResponse.name})`;
+                      if (p.thought) return `[${pi}] thought(hasSig=${!!p.thoughtSignature}, len=${(p.text||'').length})`;
+                      if (p.text) return `[${pi}] text(len=${p.text.length})`;
+                      return `[${pi}] other`;
+                    });
+                    console.error(`[Debug-400] contents[${ci}] role=${c.role}: ${partSummaries.join(' | ')}`);
+                  }
+                  console.error(`[Debug-400] thinkingConfig: ${JSON.stringify(googleBody.request?.generationConfig?.thinkingConfig)}`);
+                }
+
                emitAccountFlash(account.email, 'error');
                attemptLogs.push({ email: account.email, status, reason: parsedError.reason });
 
