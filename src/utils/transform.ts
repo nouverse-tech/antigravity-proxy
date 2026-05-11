@@ -1,4 +1,4 @@
-import { getSignature, cacheSignature } from "./cache";
+import { getSignature, cacheSignature, cacheSignatureByCallId, getSignatureByCallId } from "./cache";
 import { cleanJSONSchemaForAntigravity } from "./schema";
 import { getProxyConfig } from "../config/manager";
 
@@ -257,17 +257,8 @@ export function transformToGoogleBody(
       if (msg.tool_calls) {
         for (const tc of msg.tool_calls) {
           if (tc.function) {
-            let sig = messageSignature;
             let callId = tc.id || "";
-            let cleanId = callId;
-            
-            if (callId.startsWith("sig:")) {
-              const idParts = callId.split(":");
-              if (idParts.length >= 3) {
-                sig = idParts[1];
-                cleanId = idParts.slice(2).join(":");
-              }
-            }
+            let sig = getSignatureByCallId(callId) || messageSignature;
 
             const funcCall: any = {
               name: tc.function.name,
@@ -275,7 +266,7 @@ export function transformToGoogleBody(
             };
             
             if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
-                funcCall.id = cleanId;
+                funcCall.id = callId;
             }
 
             const funcPart: any = {
@@ -504,13 +495,16 @@ export function transformGoogleEventToOpenAI(googleData: any, model: string, req
       const call = part.functionCall || part.function_call;
       const sig = part.thoughtSignature || part.thought_signature || extractedSignature || activeSignature || "";
       const rawId = call.id || call.callId || call.call_id || "call_" + Math.random().toString(36).substring(7);
-      const callId = (sig && !rawId.startsWith("sig:")) ? `sig:${sig}:${rawId}` : rawId;
+      
+      if (sig) {
+        cacheSignatureByCallId(rawId, sig);
+      }
       
       const funcName = getOriginalToolName(call.name) || call.name;
       
       toolCalls.push({
         index: toolCalls.length,
-        id: callId,
+        id: rawId,
         type: "function",
         function: {
           name: funcName,
