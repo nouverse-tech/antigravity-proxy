@@ -1,7 +1,13 @@
 import { type ProxyConfig } from './types';
 import { EventEmitter } from 'node:events';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
-const CONFIG_PATH = 'config.json';
+const DEFAULT_PATH = existsSync("/app/data")
+  ? "/app/data/config.json"
+  : join(process.cwd(), "config.json");
+
+const CONFIG_PATH = process.env.CONFIG_FILE || DEFAULT_PATH;
 export const configEventBus = new EventEmitter();
 
 let config: ProxyConfig;
