@@ -251,8 +251,25 @@ Bun.serve({
 
                 // Debug: dump the exact request body on 400 errors so we can diagnose signature issues
                 if (status === 400) {
+                  // Log what OpenClaw sent TO the proxy
+                  const incomingMsgs = openaiBody.messages || [];
+                  console.error(`[Debug-400-IN] Incoming from client: ${incomingMsgs.length} messages`);
+                  for (let mi = 0; mi < incomingMsgs.length; mi++) {
+                    const m = incomingMsgs[mi];
+                    if (m.role === "tool") {
+                      console.error(`[Debug-400-IN] msg[${mi}] role=tool, name=${m.name}, tool_call_id=${m.tool_call_id}`);
+                    } else if (m.tool_calls) {
+                      const tcSummary = m.tool_calls.map((tc: any) => `${tc.function?.name}(id=${tc.id})`).join(', ');
+                      console.error(`[Debug-400-IN] msg[${mi}] role=${m.role}, tool_calls=[${tcSummary}], has_thought=${!!m.thought}, has_reasoning=${!!m.reasoning_content}`);
+                    } else {
+                      const contentLen = typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content || '').length;
+                      console.error(`[Debug-400-IN] msg[${mi}] role=${m.role}, content_len=${contentLen}`);
+                    }
+                  }
+
+                  // Log what proxy sent TO Google
                   const reqContents = googleBody.request?.contents || [];
-                  console.error(`[Debug-400] Model: ${googleBody.model} | Contents length: ${reqContents.length}`);
+                  console.error(`[Debug-400-OUT] Outgoing to Google: model=${googleBody.model} | ${reqContents.length} contents`);
                   for (let ci = 0; ci < reqContents.length; ci++) {
                     const c = reqContents[ci];
                     const partSummaries = (c.parts || []).map((p: any, pi: number) => {
@@ -262,9 +279,9 @@ Bun.serve({
                       if (p.text) return `[${pi}] text(len=${p.text.length})`;
                       return `[${pi}] other`;
                     });
-                    console.error(`[Debug-400] contents[${ci}] role=${c.role}: ${partSummaries.join(' | ')}`);
+                    console.error(`[Debug-400-OUT] contents[${ci}] role=${c.role}: ${partSummaries.join(' | ')}`);
                   }
-                  console.error(`[Debug-400] thinkingConfig: ${JSON.stringify(googleBody.request?.generationConfig?.thinkingConfig)}`);
+                  console.error(`[Debug-400-OUT] thinkingConfig: ${JSON.stringify(googleBody.request?.generationConfig?.thinkingConfig)}`);
                 }
 
                emitAccountFlash(account.email, 'error');
