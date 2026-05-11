@@ -364,12 +364,13 @@ You are pair programming with a USER to solve their coding task. The task may re
 
   if (isThinkingModel || googleModel.includes("gemini-3")) {
     googleRequest.generationConfig.thinkingConfig = {
-      includeThoughts: true,
-      thinkingBudget: thinkingBudget || 16000
+      includeThoughts: true
     };
     
     if (googleModel.includes("gemini-3")) {
         googleRequest.generationConfig.thinkingConfig.thinkingLevel = extractedTier || "low";
+    } else {
+        googleRequest.generationConfig.thinkingConfig.thinkingBudget = thinkingBudget || 16000;
     }
   }
 
