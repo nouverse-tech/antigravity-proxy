@@ -1,7 +1,13 @@
 import { join } from "path";
+import { existsSync } from "fs";
 import { type AntigravityAccount, type SelectionStrategy } from "./types";
 
-const ACCOUNTS_FILE = process.env.ACCOUNTS_FILE || join(process.cwd(), "antigravity-accounts.json");
+// In Docker, /app/data/ is the writable volume. Fallback to cwd for local dev.
+const DEFAULT_PATH = existsSync("/app/data")
+  ? "/app/data/antigravity-accounts.json"
+  : join(process.cwd(), "antigravity-accounts.json");
+
+const ACCOUNTS_FILE = process.env.ACCOUNTS_FILE || DEFAULT_PATH;
 
 interface StorageFormat {
     accounts: AntigravityAccount[];
