@@ -214,11 +214,14 @@ export function transformToGoogleBody(
         functionResponse: funcResp
       });
     } else {
+      let messageSignature = "";
+
       if ((msg.role === "assistant" || msg.role === "model") && sessionId) {
         const thoughtText = msg.thought || msg.reasoning_content;
         if (thoughtText) {
           const sig = getSignature(sessionId, thoughtText);
           if (sig) {
+            messageSignature = sig;
             parts.push({ thought: true, text: thoughtText, thoughtSignature: sig });
           } else if (proxyConfig.features.keepThinking) {
             parts.push({ thought: true, text: thoughtText });
@@ -254,12 +257,15 @@ export function transformToGoogleBody(
       if (msg.tool_calls) {
         for (const tc of msg.tool_calls) {
           if (tc.function) {
-            let sig = "";
+            let sig = messageSignature;
             let callId = tc.id || "";
+            let cleanId = callId;
+            
             if (callId.startsWith("sig:")) {
               const idParts = callId.split(":");
               if (idParts.length >= 3) {
                 sig = idParts[1];
+                cleanId = idParts.slice(2).join(":");
               }
             }
 
@@ -269,7 +275,7 @@ export function transformToGoogleBody(
             };
             
             if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
-                funcCall.id = tc.id;
+                funcCall.id = cleanId;
             }
 
             const funcPart: any = {
@@ -431,7 +437,7 @@ You are pair programming with a USER to solve their coding task. The task may re
   };
 }
 
-export function transformGoogleEventToOpenAI(googleData: any, model: string, requestId?: string, hasPriorToolCalls: boolean = false): any {
+export function transformGoogleEventToOpenAI(googleData: any, model: string, requestId?: string, hasPriorToolCalls: boolean = false, activeSignature?: string): any {
   const data = googleData.response || googleData;
   const requestIdActual = requestId || "chatcmpl-" + Math.random().toString(36).substring(7);
   
@@ -496,7 +502,7 @@ export function transformGoogleEventToOpenAI(googleData: any, model: string, req
 
     if (part.functionCall || part.function_call) {
       const call = part.functionCall || part.function_call;
-      const sig = part.thoughtSignature || part.thought_signature || extractedSignature || "";
+      const sig = part.thoughtSignature || part.thought_signature || extractedSignature || activeSignature || "";
       const rawId = call.id || call.callId || call.call_id || "call_" + Math.random().toString(36).substring(7);
       const callId = (sig && !rawId.startsWith("sig:")) ? `sig:${sig}:${rawId}` : rawId;
       
@@ -557,6 +563,7 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
   const encoder = new TextEncoder();
   let buffer = "";
   let currentHasPriorToolCalls = hasPriorToolCalls;
+  let activeSignature: string | undefined = undefined;
 
   return new TransformStream({
     transform(chunk, controller) {
@@ -575,9 +582,13 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
           }
           try {
             const googleEvent = JSON.parse(dataStr);
-            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls);
+            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls, activeSignature);
             
             if (openaiEvent) {
+              if (openaiEvent._signature) {
+                activeSignature = openaiEvent._signature;
+              }
+              
               if (sessionId && openaiEvent._signature && openaiEvent._thought) {
                   cacheSignature(sessionId, openaiEvent._thought, openaiEvent._signature);
                   console.log(`[Cache] Signature cached for conversation ${sessionId}`);
@@ -610,7 +621,7 @@ export function createOpenAIStreamTransformer(model: string, requestId: string, 
         if (dataStr !== "[DONE]") {
           try {
             const googleEvent = JSON.parse(dataStr);
-            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls);
+            const openaiEvent = transformGoogleEventToOpenAI(googleEvent, model, requestId, currentHasPriorToolCalls, activeSignature);
             if (openaiEvent) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiEvent)}\n\n`));
             }
