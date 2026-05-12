@@ -21,6 +21,10 @@ function sanitizeFunctionName(name: string): string {
   }
 
   TOOL_NAME_REMAP_CACHE.set(name, sanitized);
+  if (TOOL_NAME_REMAP_CACHE.size > 500) {
+    const first = TOOL_NAME_REMAP_CACHE.keys().next().value;
+    if (first) TOOL_NAME_REMAP_CACHE.delete(first);
+  }
   console.log(`[Sanitize] Renamed tool "${name}" → "${sanitized}"`);
   return sanitized;
 }

@@ -2,12 +2,11 @@ import { type AntigravityAccount, type SelectionStrategy } from "./types";
 import { loadConfig, saveConfig } from "./storage";
 import { refreshAccessToken, getProjectId } from "./oauth";
 import { generateFingerprint } from "../utils/headers";
-import { getProxyConfig as getConfigFromManager } from "../config/manager";
+import { getProxyConfig } from "../config/manager";
 import { EventEmitter } from "events";
 
 let accounts: AntigravityAccount[] = [];
 let currentStrategy: SelectionStrategy = 'hybrid';
-let lastAccountIndex = -1;
 const clientStickyMap = new Map<string, string>();
 const cooldownMap = new Map<string, number>();
 
@@ -28,18 +27,8 @@ export function getFamilyName(modelName: string) {
   return 'Other';
 }
 
-function getProxyConfig() {
-  return {
-    rotation: { cooldown: { defaultDurationMs: 60000, maxDurationMs: 3600000 } },
-    scoring: { 
-        weights: { health: 2, lru: 0.1 },
-        healthRange: { min: 0, max: 100, initial: 100 },
-        penalties: { apiError: -10, refreshError: -20, fatalError: -50, systemicError: -10 },
-        rewards: { success: 2 }
-    },
-    tokens: { expiryBufferMs: 60000 }
-  };
-}
+// Auto-clear challenge flags after this duration (12 hours)
+const CHALLENGE_AUTO_CLEAR_MS = 12 * 3600000;
 
 export async function initManager() {
   const config = await loadConfig();
@@ -128,8 +117,8 @@ export function flagAccountChallenge(email: string, pool: 'cli' | 'sandbox', mod
 }
 
 function isAccountQuotaExhausted(account: AntigravityAccount, model?: string): boolean {
-  let config: ReturnType<typeof getConfigFromManager>;
-  try { config = getConfigFromManager(); } catch { return false; }
+  let config: ReturnType<typeof getProxyConfig>;
+  try { config = getProxyConfig(); } catch { return false; }
   const threshold = config.features.softQuotaThresholdPercent;
   if (threshold >= 100 || !account.quota || account.quota.length === 0) return false;
 
@@ -159,8 +148,8 @@ function isAccountQuotaExhausted(account: AntigravityAccount, model?: string): b
 }
 
 function getPidOffset(): number {
-  let config: ReturnType<typeof getConfigFromManager>;
-  try { config = getConfigFromManager(); } catch { return 0; }
+  let config: ReturnType<typeof getProxyConfig>;
+  try { config = getProxyConfig(); } catch { return 0; }
   if (!config.features.pidOffsetEnabled) return 0;
   return process.pid % Math.max(accounts.length, 1);
 }
@@ -168,6 +157,15 @@ function getPidOffset(): number {
 export async function getBestAccount(pool?: 'cli' | 'sandbox', model?: string, clientId?: string, excludeEmails: string[] = [], skipRescue: boolean = false): Promise<AntigravityAccount | null> {
   if (accounts.length === 0) return null;
   const now = Date.now();
+  
+  // Auto-clear expired challenge flags (soft-bans typically lift after ~12h)
+  for (const a of accounts) {
+    if (a.challenge && (now - a.challenge.detectedAt) > CHALLENGE_AUTO_CLEAR_MS) {
+      console.log(`[AutoClear] Challenge flag expired for ${a.email} (${Math.round((now - a.challenge.detectedAt) / 3600000)}h old), clearing.`);
+      delete a.challenge;
+    }
+  }
+  
   const usable = accounts.filter(a => a.refreshToken && !a.challenge && !excludeEmails.includes(a.email));
   const family = model ? getFamilyName(model) : 'Other';
   
@@ -179,8 +177,8 @@ export async function getBestAccount(pool?: 'cli' | 'sandbox', model?: string, c
       return !expiry || expiry <= now;
     });
 
-    let schedulingConfig: ReturnType<typeof getConfigFromManager>['scheduling'] | undefined;
-    try { schedulingConfig = getConfigFromManager().scheduling; } catch {}
+    let schedulingConfig: ReturnType<typeof getProxyConfig>['scheduling'] | undefined;
+    try { schedulingConfig = getProxyConfig().scheduling; } catch {}
 
     if (candidates.length === 0 && schedulingConfig?.mode === 'cache_first' && clientId) {
       const stickyEmail = clientStickyMap.get(clientId);

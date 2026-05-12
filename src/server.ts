@@ -134,8 +134,6 @@ Bun.serve({
       // GPT and Claude models are Sandbox-preferred. Explicit antigravity- models are also Sandbox-only.
       const isExplicitAntigravity = modelLower.includes("antigravity-");
       const isSandboxOnlyModel = modelLower.includes("gpt") || isExplicitAntigravity;
-      const isCliOnlyModel = false;
-      const CLAUDE_REGIONS = ["us-central1", "us-east5", "europe-west1"];
       
       const clientId = req.headers.get("x-client-id") || url.searchParams.get("client_id") || "unknown";
       const firstMsg = openaiBody.messages?.[0]?.content || "";
@@ -144,7 +142,6 @@ Bun.serve({
       const sessionId = firstMsg ? new Bun.CryptoHasher("sha256").update(stableSeed).digest("hex") : crypto.randomUUID();
 
         let lastStatus = 0;
-        let lastGoogleUrl = "";
         let originAccountEmail = "";
 
         while (attempts < MAX_ATTEMPTS) {
@@ -154,17 +151,17 @@ Bun.serve({
                 const delayMs = Math.min(500 * attempts, 3000);
                 await new Promise(r => setTimeout(r, delayMs));
                 
-                if (!isSandboxOnlyModel && !isCliOnlyModel && lastStatus !== 503) {
+                if (!isSandboxOnlyModel && lastStatus !== 503) {
                     useCliPool = !useCliPool;
                     console.log(`[Switch] Switching to ${useCliPool ? 'CLI' : 'Sandbox'} pool for attempt ${attempts}`);
                 } else {
-                    console.log(`[Switch] Skipping pool switch for ${isCliOnlyModel ? 'CLI-only' : 'sandbox-only'} model (attempt ${attempts})`);
+                    console.log(`[Switch] Skipping pool switch for sandbox-only model (attempt ${attempts})`);
                 }
             }
 
             let account = await getBestAccount(useCliPool ? "cli" : "sandbox", openaiBody.model, clientId, triedEmails, true);
             
-            if (!account && !isSandboxOnlyModel && !isCliOnlyModel) {
+            if (!account && !isSandboxOnlyModel) {
                 console.log(`[Manager] No READY accounts in ${useCliPool ? 'CLI' : 'Sandbox'} pool, trying the other pool first...`);
                 const otherPool = useCliPool ? "sandbox" : "cli";
                 account = await getBestAccount(otherPool, openaiBody.model, clientId, triedEmails, true);
@@ -262,7 +259,6 @@ Bun.serve({
                const parsedError = parseGoogleError(errText);
                 const status = googleRes.status;
                 lastStatus = status;
-                lastGoogleUrl = GOOGLE_URL;
                 
                 console.error(`[Error] Google API (${account.email}) returned ${status} (${parsedError.reason}):`, errText);
 
@@ -485,6 +481,7 @@ Bun.serve({
                });
              }
             } catch (e: any) {
+             clearTimeout(timeoutId);
              if (e.name === 'AbortError') {
                  console.error(`[Timeout] Request timed out for ${account.email} after ${timeoutMs}ms`);
                  account.healthScore = Math.max(config.scoring.healthRange.min, account.healthScore - 5);
@@ -690,7 +687,8 @@ Bun.serve({
         const email = url.pathname.split("/")[3];
         const body = await req.json() as any;
         const pool = body.pool || 'cli';
-        markCooldown(email, pool as any, "3600s");
+        const family = body.modelFamily || 'Other';
+        markCooldown(email, pool as 'cli' | 'sandbox', family, "3600s");
         return new Response("OK", { status: 200 });
     }
 
@@ -727,7 +725,8 @@ Bun.serve({
 
           await addAccount(newAccount);
           
-          return Response.redirect(`http://localhost:3000/frontend/index.html`);
+          const baseUrl = process.env.BASE_URL || `http://localhost:3000`;
+          return Response.redirect(`${baseUrl}/frontend/index.html`);
       } catch (e) {
           return new Response(`Auth error: ${e}`, { status: 500 });
       }

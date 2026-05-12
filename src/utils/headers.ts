@@ -12,22 +12,12 @@ export const OAUTH_CONFIG = {
     "https://www.googleapis.com/auth/cclog",
     "https://www.googleapis.com/auth/experimentsandconfigs"
   ],
-  redirectUri: "http://localhost:3000/oauth-callback"
+  redirectUri: `${process.env.BASE_URL || "http://localhost:3000"}/oauth-callback`
 };
 
 const ANTIGRAVITY_VERSION = "1.23.2";
 
 const PLATFORMS = ["darwin/x64", "darwin/arm64"] as const;
-
-const ARCHITECTURES = ["x64", "arm64"] as const;
-
-const IDE_TYPES = [
-  "VSCODE"
-] as const;
-
-const PLATFORM_NAMES = [
-  "MACOS"
-] as const;
 
 const SDK_CLIENTS = [
   "google-cloud-sdk vscode/1.96.0",

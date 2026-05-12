@@ -178,14 +178,19 @@ function parseQuotaResponse(data: any): AntigravityAccount['quota'] | null {
 
 export async function refreshAllQuotas() {
     const accounts = getAccounts();
+    let updated = false;
     
-    await Promise.all(accounts.map(async (acc) => {
-        if (acc.projectId) { 
+    for (const acc of accounts) {
+        if (acc.projectId) {
             const quota = await fetchQuota(acc);
             if (quota) {
                 acc.quota = quota;
-                await saveAccounts(getAccounts());
+                updated = true;
             }
         }
-    }));
+    }
+    
+    if (updated) {
+        await saveAccounts(accounts);
+    }
 }

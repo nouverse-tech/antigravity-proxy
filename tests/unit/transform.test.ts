@@ -1,6 +1,11 @@
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeAll } from "bun:test";
 import { transformToGoogleBody, transformGoogleEventToOpenAI } from "../../src/utils/transform";
+import { loadProxyConfig } from "../../src/config/manager";
+
+beforeAll(async () => {
+  await loadProxyConfig();
+});
 
 describe("Unit Tests: transformToGoogleBody", () => {
   test("Basic message transformation", () => {

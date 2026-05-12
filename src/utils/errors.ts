@@ -89,5 +89,5 @@ export function parseGoogleError(body: string): {
     }
   }
 
-  return { reason, validationUrl, isQuotaExhausted, isChallengeRequired, isModelUnsupported, status };
+  return { reason, validationUrl, isQuotaExhausted, isChallengeRequired, isModelUnsupported, status, message };
 }
