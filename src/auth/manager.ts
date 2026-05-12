@@ -291,12 +291,15 @@ export async function updateAccountUsage(email: string, success: boolean, model?
   if (success && clientId) clientStickyMap.set(clientId, email);
   if (success && pool && model) clearCooldown(email, pool, getFamilyName(model));
   account.lastUsed = Date.now();
-  const delta = success ? 2 : (status === 403 ? -50 : -10);
-  account.healthScore = Math.max(0, Math.min(100, account.healthScore + delta));
+  const config = getProxyConfig();
+  const delta = success 
+    ? config.scoring.rewards.success 
+    : (status === 403 ? config.scoring.penalties.fatalError : config.scoring.penalties.apiError);
+  account.healthScore = Math.max(config.scoring.healthRange.min, Math.min(config.scoring.healthRange.max, account.healthScore + delta));
   if (model && pool) {
     if (!account.modelScores) account.modelScores = {};
     const key = `${model}|${pool}`;
-    account.modelScores[key] = Math.max(0, Math.min(100, (account.modelScores[key] ?? 100) + delta));
+    account.modelScores[key] = Math.max(config.scoring.healthRange.min, Math.min(config.scoring.healthRange.max, (account.modelScores[key] ?? config.scoring.healthRange.initial) + delta));
   }
   await saveAccounts(accounts);
 }
