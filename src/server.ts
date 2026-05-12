@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { loadProxyConfig, getProxyConfig, updateProxyConfig } from "./config/manager";
+import { loadProxyConfig, getProxyConfig, updateProxyConfig, configEventBus } from "./config/manager";
 
 await loadProxyConfig();
 
@@ -45,7 +45,12 @@ await initManager();
 
 const proxyConfig = getProxyConfig();
 
-setInterval(refreshAllQuotas, proxyConfig.quota.refreshIntervalMs);
+let quotaInterval = setInterval(refreshAllQuotas, proxyConfig.quota.refreshIntervalMs);
+configEventBus.on('update', (newConfig) => {
+    clearInterval(quotaInterval);
+    quotaInterval = setInterval(refreshAllQuotas, newConfig.quota.refreshIntervalMs);
+    console.log(`[Config] Quota refresh interval updated to ${newConfig.quota.refreshIntervalMs}ms`);
+});
 // Initial quota refresh on startup
 refreshAllQuotas();
 
