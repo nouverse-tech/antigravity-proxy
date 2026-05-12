@@ -484,7 +484,7 @@ Bun.serve({
              clearTimeout(timeoutId);
              if (e.name === 'AbortError') {
                  console.error(`[Timeout] Request timed out for ${account.email} after ${timeoutMs}ms`);
-                 account.healthScore = Math.max(config.scoring.healthRange.min, account.healthScore - 5);
+                 account.healthScore = Math.max(config.scoring.healthRange.min, account.healthScore + config.scoring.penalties.systemicError);
              } else {
                  console.error(`Proxy error for ${account.email}:`, e);
              }
@@ -623,7 +623,7 @@ Bun.serve({
     if (url.pathname === "/api/accounts/reset-all" && req.method === "POST") {
         const accounts = getAccounts();
         for (const acc of accounts) {
-            acc.healthScore = 100;
+            acc.healthScore = getProxyConfig().scoring.healthRange.initial;
             acc.consecutiveFailures = 0;
             acc.cooldowns = {};
             acc.modelScores = {};

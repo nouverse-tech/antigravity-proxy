@@ -252,7 +252,7 @@ async function ensureAccountReady(account: AntigravityAccount): Promise<Antigrav
       if (!account.projectId) account.projectId = await getProjectId(account.accessToken) || "rising-fact-p41fc";
       await saveAccounts(accounts);
     } catch (e) {
-      account.healthScore = Math.max(0, account.healthScore - 20);
+      account.healthScore = Math.max(config.scoring.healthRange.min, account.healthScore + config.scoring.penalties.refreshError);
       await saveAccounts(accounts);
       return null;
     }
@@ -324,7 +324,7 @@ export function flagModelUnsupported(email: string, model: string) {
 export async function resetAccount(email: string) {
     const account = accounts.find(a => a.email === email);
     if (account) {
-        account.healthScore = 100;
+        account.healthScore = getProxyConfig().scoring.healthRange.initial;
         account.consecutiveFailures = 0;
         account.cooldowns = {};
         account.modelScores = {};

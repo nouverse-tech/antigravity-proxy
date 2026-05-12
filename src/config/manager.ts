@@ -91,8 +91,9 @@ const DEFAULT_CONFIG: ProxyConfig = {
     pidOffsetEnabled: false,
     softQuotaThresholdPercent: 90,
     jitterEnabled: true,
-    jitterMinMs: 50,
-    jitterMaxMs: 300
+    // higher jitter can make the traffic look more natural
+    jitterMinMs: 2000, // 2 second
+    jitterMaxMs: 5000 // 5 second
   },
   scheduling: {
     mode: 'cache_first',

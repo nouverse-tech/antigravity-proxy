@@ -1,12 +1,15 @@
 import { initManager, getAccounts, resetAllCooldowns, saveAccounts } from "../auth/manager";
+import { loadProxyConfig, getProxyConfig } from "../config/manager";
 
 async function main() {
+  await loadProxyConfig();
   await initManager();
   const accounts = getAccounts();
+  const config = getProxyConfig();
   console.log(`🚀 Resetting ${accounts.length} accounts...`);
 
   for (const acc of accounts) {
-    acc.healthScore = 100;
+    acc.healthScore = config.scoring.healthRange.initial;
     acc.consecutiveFailures = 0;
     acc.cooldowns = {};
     acc.modelScores = {};
