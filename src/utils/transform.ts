@@ -113,6 +113,9 @@ export function transformToGoogleBody(
       "claude-sonnet-4-5", 
       "claude-sonnet-4-5-thinking", 
       "claude-opus-4-6-thinking",
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-high",
+      "gemini-3.5-flash-medium",
       "gemini-3.1-pro-high",
       "gemini-3.1-pro-low",
       "gemini-3.1-pro",
@@ -126,19 +129,23 @@ export function transformToGoogleBody(
       "gemini-2.5-flash-lite",
       "gemini-2.5-flash-thinking",
       "gemini-3-pro-preview",
-      "gemini-3-flash-preview"
+      "gemini-3-flash-preview",
+      "gpt-oss-120b"
   ];
   
   const isNative = (nativelySupported.includes(googleModel) || nativelySupported.includes(baseModel));
 
   if (isCli) {
       if (!googleModel.includes("claude")) {
-          // Standardize Gemini 3 CLI models to use -preview suffix
+          // Standardize Gemini 3+ CLI models to use -preview suffix
           if (googleModel.includes("gemini-3")) {
               googleModel = baseModel; // Strip tiers
               if (!googleModel.endsWith("-preview")) {
                   googleModel = `${googleModel}-preview`;
               }
+          } else if (googleModel.includes("gpt-oss")) {
+              // GPT-OSS 120B: pass through as-is
+              googleModel = baseModel;
           } else if (googleModel.includes("gpt")) {
               if (googleModel.includes("thinking")) {
                    googleModel = "gemini-2.0-flash-thinking-exp";
@@ -159,16 +166,20 @@ export function transformToGoogleBody(
        }
        
        if (isNative) {
-           if (baseModel.includes("gemini-3.1-pro")) {
-               googleModel = `gemini-3.1-pro-${extractedTier || "high"}`;
-           } else if (baseModel.includes("gemini-3-pro")) {
-               // Respect extracted tier for Gemini 3 Pro, fallback to high
-               googleModel = `gemini-3-pro-${extractedTier || "high"}`;
-           } else if (baseModel.includes("gemini-3-flash")) {
-               googleModel = "gemini-3-flash";
-           } else {
-               googleModel = baseModel;
-           }
+            if (baseModel.includes("gemini-3.5-flash")) {
+                googleModel = `gemini-3.5-flash-${extractedTier || "high"}`;
+            } else if (baseModel.includes("gemini-3.1-pro")) {
+                googleModel = `gemini-3.1-pro-${extractedTier || "high"}`;
+            } else if (baseModel.includes("gemini-3-pro")) {
+                // Respect extracted tier for Gemini 3 Pro, fallback to high
+                googleModel = `gemini-3-pro-${extractedTier || "high"}`;
+            } else if (baseModel.includes("gemini-3-flash")) {
+                googleModel = "gemini-3-flash";
+            } else if (baseModel.includes("gpt-oss")) {
+                googleModel = baseModel;
+            } else {
+                googleModel = baseModel;
+            }
 
              if (googleModel === "claude-opus-4-6" || googleModel === "antigravity-claude-opus-4-6") {
                  googleModel = "claude-opus-4-6-thinking";

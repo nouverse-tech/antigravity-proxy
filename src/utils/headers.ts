@@ -15,7 +15,7 @@ export const OAUTH_CONFIG = {
   redirectUri: "http://localhost:3000/oauth-callback"
 };
 
-const ANTIGRAVITY_VERSION = "1.23.2";
+const ANTIGRAVITY_VERSION = "2.0.1";
 
 const PLATFORMS = ["darwin/x64", "darwin/arm64"] as const;
 
@@ -30,8 +30,8 @@ const PLATFORM_NAMES = [
 ] as const;
 
 const SDK_CLIENTS = [
-  "google-cloud-sdk vscode/1.96.0",
-  "google-cloud-sdk vscode/1.95.0",
+  "google-cloud-sdk vscode/1.107.0",
+  "google-cloud-sdk vscode/1.106.0",
 ] as const;
 
 const GEMINI_CLI_USER_AGENTS = [
@@ -84,7 +84,7 @@ export function generateFingerprint(email?: string): DeviceFingerprint {
   const ideType = "VSCODE";
   const platformName = "MACOS";
   
-  const osVersions = ["14.5", "15.0", "15.1", "15.2"];
+  const osVersions = ["15.1", "15.2", "15.3", "15.4"];
   const osVersion = randomFrom(osVersions);
 
   const apiClient = randomFrom(SDK_CLIENTS);
@@ -118,7 +118,7 @@ export function getImpersonationHeaders(accessToken: string, fingerprint?: Devic
   const headers: Record<string, string> = {
     "Authorization": `Bearer ${accessToken}`,
     "Content-Type": "application/json",
-    "User-Agent": `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/140.0.7560.128 Electron/38.2.0 Safari/537.36`,
+    "User-Agent": `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Antigravity/${ANTIGRAVITY_VERSION} Chrome/142.0.7444.175 Electron/39.2.3 Safari/537.36`,
     "X-Goog-Api-Client": fp.apiClient,
     "X-Goog-QuotaUser": fp.quotaUser,
     "X-Client-Device-Id": fp.deviceId,
