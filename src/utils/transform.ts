@@ -248,13 +248,27 @@ export function transformToGoogleBody(
         response: responseObj
       };
       
-      if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
-          funcResp.id = msg.tool_call_id;
+      let cleanId = msg.tool_call_id || "";
+      if (cleanId.startsWith("sig:")) {
+        const idParts = cleanId.split(":");
+        if (idParts.length >= 3) {
+          cleanId = idParts.slice(2).join(":");
+        }
       }
 
-      parts.push({
-        functionResponse: funcResp
-      });
+      if (googleModel.includes("claude") || googleModel.includes("gemini-3")) {
+          funcResp.id = cleanId;
+      }
+
+      if (toolCallNameMap.get(`converted:${cleanId}`) === "true") {
+        parts.push({
+          text: `[Tool Response: ${funcName}]\n${JSON.stringify(responseObj)}`
+        });
+      } else {
+        parts.push({
+          functionResponse: funcResp
+        });
+      }
     } else {
       // For previous turns: strip all thinking content and signatures entirely.
       // For current turn: include thinking content with signatures from cache.
@@ -301,7 +315,6 @@ export function transformToGoogleBody(
         for (const tc of msg.tool_calls) {
           if (tc.function) {
             let callId = tc.id || "";
-            // Clean any legacy sig: prefix from the ID
             let cleanId = callId;
             if (callId.startsWith("sig:")) {
               const idParts = callId.split(":");
@@ -323,19 +336,28 @@ export function transformToGoogleBody(
               functionCall: funcCall
             };
             
-            // Only attach signatures for function calls in the CURRENT turn.
-            // Per Google docs: only the first functionCall part in each step needs a signature.
-            // For previous turns: NEVER attach signatures (Google doesn't validate them,
-            // and attaching stale/invalid ones causes "Thought signature is not valid" errors).
-            if (isInCurrentTurn && isFirstFuncCallInStep) {
+            // Attach signatures for function calls. Google strictly requires them for all functionCall parts.
+            let sigAdded = false;
+            if (isFirstFuncCallInStep) {
               const sig = getSignatureByCallId(cleanId);
               if (sig) {
                 funcPart.thoughtSignature = sig;
+                sigAdded = true;
               }
               isFirstFuncCallInStep = false;
             }
 
-            parts.push(funcPart);
+            // If we require a signature but don't have one (e.g. cache miss), Google will reject with 400.
+            // To prevent this, we convert the tool call to text.
+            if (!sigAdded && googleModel.includes("gemini-3")) {
+              parts.push({
+                text: `[Tool Call: ${tc.function.name}]\nArguments: ${JSON.stringify(funcCall.args)}`
+              });
+              // Mark this ID as converted so we can also convert its response
+              toolCallNameMap.set(`converted:${cleanId}`, "true");
+            } else {
+              parts.push(funcPart);
+            }
           }
         }
       }

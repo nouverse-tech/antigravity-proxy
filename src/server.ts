@@ -222,13 +222,20 @@ Bun.serve({
           } else if (originAccountEmail && originAccountEmail !== account.email) {
             const reqContents = googleBody.request?.contents || [];
             for (const c of reqContents) {
-              for (const p of (c.parts || [])) {
-                if (p.thoughtSignature) {
-                  delete p.thoughtSignature;
+              for (let i = 0; i < (c.parts || []).length; i++) {
+                const p = c.parts[i];
+                if (p.functionCall) {
+                  c.parts[i] = {
+                    text: `[Tool Call: ${p.functionCall.name}]\nArguments: ${JSON.stringify(p.functionCall.args)}`
+                  };
+                } else if (p.functionResponse) {
+                  c.parts[i] = {
+                    text: `[Tool Response: ${p.functionResponse.name}]\n${JSON.stringify(p.functionResponse.response)}`
+                  };
                 }
               }
             }
-            console.log(`[Signature] Stripped thoughtSignatures for retry with different account (${account.email})`);
+            console.log(`[Signature] Converted tool calls to text for retry with different account (${account.email})`);
           }
 
           const isClaudeModelTarget = googleBody.model.toLowerCase().includes("claude");
