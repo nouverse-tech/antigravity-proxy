@@ -39,6 +39,26 @@ bun run start
 ```
 The server starts on port 3000.
 
+## Supported Models (Active)
+
+Antigravity Proxy routes to two different pools depending on the requested model. Following our latest checks, these are the active models available:
+
+### Sandbox Pool (Internal / Experimental)
+*   **Claude Opus 4.6** (`claude-opus-4-6-thinking`)
+*   **Gemini 3.5 Flash** (`gemini-3.5-flash-low`)
+*   **Gemini 3.1 Pro** (`gemini-3.1-pro`, `gemini-3.1-pro-preview`, `gemini-3.1-pro-high`, `gemini-3.1-pro-low`)
+*   **Gemini 3 Pro** (`gemini-3-pro`, `gemini-3-pro-high`, `gemini-3-pro-low`)
+*   **Gemini 3 Flash** (`gemini-3-flash`)
+*   **GPT-OSS 120B** (`gpt-oss-120b`, `gpt-oss-120b-medium`)
+
+### CLI Pool (Production)
+*   **Gemini 2.5 Pro** (`gemini-2.5-pro`)
+*   **Gemini 2.5 Flash** (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-flash-thinking`)
+*   **Gemini 3 Pro Preview** (`gemini-3-pro-preview`)
+*   **Gemini 3 Flash Preview** (`gemini-3-flash-preview`)
+
+*(Note: Models that are restricted or return 404 from Google, such as Claude Sonnet 4.6/4.5, have been automatically removed from our routing list).*
+
 ## Integration Guides
 
 ### Claude Code Configuration
@@ -89,7 +109,6 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
                 "name": "Gemini 3.5 Flash Low (Antigravity)",
                 "limit": { "context": 1048576, "output": 65536 }
             },
-
             "antigravity-claude-opus-4-6-thinking-low": {
                 "name": "Claude Opus 4.6 Think Low (Antigravity)",
                 "limit": { "context": 1000000, "output": 64000 }
