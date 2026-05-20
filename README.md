@@ -92,6 +92,10 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
                 "name": "Gemini 3.5 Flash Medium (Antigravity)",
                 "limit": { "context": 1048576, "output": 65536 }
             },
+            "antigravity-gemini-3.5-flash-low": {
+                "name": "Gemini 3.5 Flash Low (Antigravity)",
+                "limit": { "context": 1048576, "output": 65536 }
+            },
             "antigravity-claude-sonnet-4-6": {
                 "name": "Claude Sonnet 4.6 (Antigravity)",
                 "limit": { "context": 200000, "output": 64000 }
@@ -144,8 +148,8 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
                 "name": "Gemini 2.5 Pro (CLI)",
                 "limit": { "context": 1048576, "output": 65536 }
             },
-            "antigravity-gpt-oss-120b": {
-                "name": "GPT-OSS 120B (Antigravity)",
+            "antigravity-gpt-oss-120b-medium": {
+                "name": "GPT-OSS 120B Medium (Antigravity)",
                 "limit": { "context": 200000, "output": 64000 }
             }
         }
