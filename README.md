@@ -84,50 +84,12 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
                 "name": "Gemini 3 Flash (Antigravity)",
                 "limit": { "context": 1048576, "output": 65536 }
             },
-            "antigravity-gemini-3.5-flash-high": {
-                "name": "Gemini 3.5 Flash High (Antigravity)",
-                "limit": { "context": 1048576, "output": 65536 }
-            },
-            "antigravity-gemini-3.5-flash-medium": {
-                "name": "Gemini 3.5 Flash Medium (Antigravity)",
-                "limit": { "context": 1048576, "output": 65536 }
-            },
+
             "antigravity-gemini-3.5-flash-low": {
                 "name": "Gemini 3.5 Flash Low (Antigravity)",
                 "limit": { "context": 1048576, "output": 65536 }
             },
-            "antigravity-claude-sonnet-4-6": {
-                "name": "Claude Sonnet 4.6 (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-6-thinking-low": {
-                "name": "Claude Sonnet 4.6 Think Low (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-6-thinking-medium": {
-                "name": "Claude Sonnet 4.6 Think Medium (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-6-thinking-high": {
-                "name": "Claude Sonnet 4.6 Think High (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-5": {
-                "name": "Claude Sonnet 4.5 (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-5-thinking-low": {
-                "name": "Claude Sonnet 4.5 Think Low (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-5-thinking-medium": {
-                "name": "Claude Sonnet 4.5 Think Medium (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
-            "antigravity-claude-sonnet-4-5-thinking-high": {
-                "name": "Claude Sonnet 4.5 Think High (Antigravity)",
-                "limit": { "context": 200000, "output": 64000 }
-            },
+
             "antigravity-claude-opus-4-6-thinking-low": {
                 "name": "Claude Opus 4.6 Think Low (Antigravity)",
                 "limit": { "context": 1000000, "output": 64000 }
