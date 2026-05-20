@@ -138,6 +138,330 @@ Add the following provider to your `~/.config/opencode/opencode.json` under the 
 }
 ```
 
+
+### OpenClaw Configuration
+Add the following configuration to include all active models:
+
+```json
+{
+  "providers": {
+    "nouverse-antigravity": {
+      "baseUrl": "http://localhost:3000/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-antigravity",
+      "models": [
+        {
+          "id": "antigravity-claude-opus-4-6-thinking",
+          "name": "Claude Opus 4 6 Thinking (Antigravity)",
+          "contextWindow": 1000000,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 15,
+            "output": 75,
+            "cacheRead": 1.5,
+            "cacheWrite": 3
+          },
+          "reasoning": true
+        },
+        {
+          "id": "antigravity-gemini-3.5-flash-low",
+          "name": "Gemini 3.5 Flash Low (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.15,
+            "output": 0.6,
+            "cacheRead": 0.04,
+            "cacheWrite": 0.08
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3.1-pro-high",
+          "name": "Gemini 3.1 Pro High (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3.1-pro-low",
+          "name": "Gemini 3.1 Pro Low (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3.1-pro",
+          "name": "Gemini 3.1 Pro (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3.1-pro-preview",
+          "name": "Gemini 3.1 Pro Preview (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3-flash",
+          "name": "Gemini 3 Flash (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.075,
+            "output": 0.3,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.04
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3-pro-high",
+          "name": "Gemini 3 Pro High (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3-pro-low",
+          "name": "Gemini 3 Pro Low (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3-pro",
+          "name": "Gemini 3 Pro (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-2.5-pro",
+          "name": "Gemini 2.5 Pro (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 1.25,
+            "output": 5,
+            "cacheRead": 0.3,
+            "cacheWrite": 0.6
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.075,
+            "output": 0.3,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.04
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-2.5-flash-lite",
+          "name": "Gemini 2.5 Flash Lite (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.075,
+            "output": 0.3,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.04
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-2.5-flash-thinking",
+          "name": "Gemini 2.5 Flash Thinking (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.075,
+            "output": 0.3,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.04
+          },
+          "reasoning": true
+        },
+        {
+          "id": "antigravity-gemini-3-pro-preview",
+          "name": "Gemini 3 Pro Preview (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 2,
+            "output": 12,
+            "cacheRead": 0.5,
+            "cacheWrite": 1
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gemini-3-flash-preview",
+          "name": "Gemini 3 Flash Preview (Antigravity)",
+          "contextWindow": 1048576,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.075,
+            "output": 0.3,
+            "cacheRead": 0.02,
+            "cacheWrite": 0.04
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gpt-oss-120b",
+          "name": "Gpt Oss 120b (Antigravity)",
+          "contextWindow": 200000,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.7,
+            "output": 0.9,
+            "cacheRead": 0.1,
+            "cacheWrite": 0.2
+          },
+          "reasoning": false
+        },
+        {
+          "id": "antigravity-gpt-oss-120b-medium",
+          "name": "Gpt Oss 120b Medium (Antigravity)",
+          "contextWindow": 200000,
+          "maxTokens": 8192,
+          "input": [
+            "text",
+            "image"
+          ],
+          "cost": {
+            "input": 0.7,
+            "output": 0.9,
+            "cacheRead": 0.1,
+            "cacheWrite": 0.2
+          },
+          "reasoning": false
+        }
+      ]
+    }
+  }
+}
+```
+
 ## How It Works
 
 Antigravity Proxy acts as a sophisticated bridge that translates OpenAI-formatted requests into Google's internal RPC protocols. It manages the complexities of authentication, session handling, and response streaming, allowing you to use high-tier models with your favorite tools.
