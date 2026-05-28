@@ -45,7 +45,9 @@ describe("Unit Tests: transformToGoogleBody", () => {
 
     const result = transformToGoogleBody(openaiBody, "p", true, "us-central1"); // isCli = true
     expect(result.model).toBe("gemini-3-flash-preview");
-    expect(result.request.generationConfig.thinkingConfig.thinkingLevel).toBe("medium");
+    // Flash Thinking models use thinkingBudget (not thinkingLevel which is Pro-only)
+    expect(result.request.generationConfig.thinkingConfig.includeThoughts).toBe(true);
+    expect(result.request.generationConfig.thinkingConfig.thinkingBudget).toBe(16000);
   });
 
   test("Multi-turn conversation", () => {
