@@ -358,11 +358,31 @@ export function transformToGoogleBody(
   });
 
   // Merge consecutive same-role messages (Google API requires alternating user/model roles)
+  // BUT: never mix functionResponse/functionCall parts with text parts in the same content entry
   const contents: any[] = [];
   for (const entry of rawContents) {
     if (contents.length > 0 && contents[contents.length - 1].role === entry.role) {
-      // Merge parts into the previous message
-      contents[contents.length - 1].parts.push(...entry.parts);
+      const prevParts = contents[contents.length - 1].parts;
+      const prevHasFuncParts = prevParts.some((p: any) => p.functionResponse || p.functionCall);
+      const newHasFuncParts = entry.parts.some((p: any) => p.functionResponse || p.functionCall);
+      const prevHasTextParts = prevParts.some((p: any) => p.text !== undefined && !p.functionResponse && !p.functionCall);
+      const newHasTextParts = entry.parts.some((p: any) => p.text !== undefined && !p.functionResponse && !p.functionCall);
+
+      // Don't merge if it would mix function parts with text parts
+      const wouldMixTypes = (prevHasFuncParts && newHasTextParts) || (prevHasTextParts && newHasFuncParts);
+      
+      if (wouldMixTypes) {
+        // Insert a minimal model placeholder to break the consecutive same-role sequence
+        if (entry.role === "user") {
+          contents.push({ role: "model", parts: [{ text: " " }] });
+        } else {
+          contents.push({ role: "user", parts: [{ text: " " }] });
+        }
+        contents.push(entry);
+      } else {
+        // Safe to merge — same part types
+        contents[contents.length - 1].parts.push(...entry.parts);
+      }
     } else {
       contents.push(entry);
     }
@@ -435,8 +455,10 @@ You are pair programming with a USER to solve their coding task. The task may re
   };
 
   const isGemini3Pro = googleModel.includes("gemini-3") && googleModel.includes("pro");
+  // Flash models (without explicit -thinking) must NEVER get thinkingConfig
+  const isFlashModel = googleModel.includes("flash") && !rawModel.includes("-thinking");
   
-  if (isThinkingModel || isGemini3Pro) {
+  if ((isThinkingModel || isGemini3Pro) && !isFlashModel) {
     googleRequest.generationConfig.thinkingConfig = {
       includeThoughts: true
     };
