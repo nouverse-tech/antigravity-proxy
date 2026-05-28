@@ -434,12 +434,14 @@ You are pair programming with a USER to solve their coding task. The task may re
     sessionId: sessionId || crypto.randomUUID()
   };
 
-  if (isThinkingModel || googleModel.includes("gemini-3")) {
+  const isGemini3Pro = googleModel.includes("gemini-3") && googleModel.includes("pro");
+  
+  if (isThinkingModel || isGemini3Pro) {
     googleRequest.generationConfig.thinkingConfig = {
       includeThoughts: true
     };
     
-    if (googleModel.includes("gemini-3")) {
+    if (isGemini3Pro) {
         googleRequest.generationConfig.thinkingConfig.thinkingLevel = extractedTier || "low";
     } else {
         googleRequest.generationConfig.thinkingConfig.thinkingBudget = thinkingBudget || 16000;
