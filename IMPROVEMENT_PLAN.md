@@ -19,3 +19,15 @@ Fokus pada penanganan error spesifik dari Google (seperti CAPTCHA) agar tidak me
 
 - `[ ]` **Auto-Clear Challenge Flags**: Saat ini kalau akun kena `403 Challenge Required`, akun tersebut di-lock secara permanen sampai di-reset manual di UI. Tambahkan mekanisme auto-clear (misal: flag dihapus setelah 12 atau 24 jam) karena seringkali blokir CAPTCHA Google bersifat *soft-ban* dan bisa pulih sendiri keesokan harinya.
 - `[ ]` **Smart Exponential Backoff**: Meningkatkan keandalan saat terkena `429 Too Many Requests` agar proxy tahu persis kapan boleh mulai memakai akun itu lagi tanpa memicu blokir permanen.
+
+## Phase 4: Optimization & Load-Balancing
+Fokus pada optimalisasi routing dan load-balancing ke region/endpoint yang berbeda.
+
+- `[ ]` **Claude Multi-Region Load-Balancing**: Lakukan distribusi request model Claude secara seimbang ke berbagai region Google Cloud (seperti `us-central1`, `us-east5`, `europe-west1`) guna memaksimalkan limit kuota regional dan menghindari pemblokiran berbasis IP/region.
+- `[ ]` **Dynamic Retry Jitter & Queue**: Implementasikan sistem antrean (queue) cerdas ketika seluruh akun sedang dalam cooldown (429), dengan waktu tunggu retry yang disesuaikan secara dinamis (*dynamic jitter*) agar request tidak dibuang begitu saja.
+
+## Phase 5: Monitoring & Diagnostics
+Fokus pada kemudahan pemantauan kesehatan proxy melalui dashboard/UI.
+
+- `[ ]` **Real-time Account Metrics**: Tampilkan metrik konsumsi token, rasio sukses/error per akun, serta status limitasi (rate limit) secara real-time pada UI dashboard.
+- `[ ]` **Bulk Diagnostics Tool**: Tambahkan tombol di dashboard untuk melakukan pengujian diagnostik secara berkala (check token health, call simple generation API) guna memastikan kesiapan akun-akun yang terdaftar sebelum digunakan untuk request riil.
