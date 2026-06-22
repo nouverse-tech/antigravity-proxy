@@ -133,7 +133,7 @@ Bun.serve({
       
       // GPT and Claude models are Sandbox-preferred. Explicit antigravity- models are also Sandbox-only.
       const isExplicitAntigravity = modelLower.includes("antigravity-");
-      const isSandboxOnlyModel = modelLower.includes("gpt") || isExplicitAntigravity;
+      const isSandboxOnlyModel = modelLower.includes("gpt") || isExplicitAntigravity || modelLower.includes("gemini-3.5") || modelLower.includes("gemini-3.1") || isClaudeModel;
       const isCliOnlyModel = false;
       const CLAUDE_REGIONS = ["us-central1", "us-east5", "europe-west1"];
       
